@@ -157,8 +157,12 @@ int initial_serial(int m_fd,speed_t baudrate, int databits, const char parity, b
 #define BUF_SIZE_MAX    120
 #define DAT_SIZE_MAX    60
 #define FRAME_TAIL_SIZE 3
-#define READ_SIZE       40
+#define READ_SIZE       32
 
+char frame_tail1 = FRAME_END1;
+char frame_tail2 = FRAME_END2;
+char frame_tail3 = FRAME_END3;
+char frame_head  = FRAME_START;
 
 
 int main()
@@ -168,10 +172,13 @@ int main()
 	char    serial_buf[BUF_SIZE_MAX];	//串口缓存
 	char    data[DAT_SIZE_MAX]; //数据空间
 	char    temp;               //临时中转数据
-	int     datCursor:          //当前数据指针
+	int     datCursor;          //当前数据指针
 	int     bufCursor;          //当前缓存指针
+	int 	i;
+	int currentLength;
 	Serial_base_data * serial_data;
-	serial_data=(Serial_base_data *) data;
+	serial_data = (Serial_base_data *) data;
+	//serial_data = data;
 	//打开串口设备
 	fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY/* | O_NDELAY*/);	
 	if (fd == -1)
@@ -186,40 +193,55 @@ int main()
 		return -1;
 	}
 
-	int currentLength=0;//当前读取的缓存数据长度
+	currentLength=0;//当前读取的缓存数据长度
+	datCursor=0;
 	while(true){	
 		available_len=read(fd,serial_buf+currentLength,READ_SIZE);
 		if(available_len<0){
-			
-			cout<<"read Attitude data error.."<<endl;
+			cout<<"read data error.."<<endl;
 			continue;
-		}
-		currentLength += available_len;
+		}	
+		currentLength = currentLength + available_len;
+		cout<<"read ok : available_len"<< available_len<<"currentLength:"<<currentLength<<endl;		
 		bufCursor=0;//缓存指针
 		//如果接收可用的数据大于数据帧尾标识大小则解析
-		while(currentLength > FRAME_TAIL_SIZE)
+		
+		while(currentLength > 3)
 		{
 		    //检测到帧尾,并同时提取帧数据
 		    data[datCursor++] = serial_buf[bufCursor];
 		    currentLength--;
-		    if(serial_buf[bufCursor++] != FRAME_END1)
+		    if(serial_buf[bufCursor++] != frame_tail1)
+		    {
+		        continue;
+		    }
+		    
+		    data[datCursor++] = serial_buf[bufCursor];
+		    currentLength--;
+		    if(serial_buf[bufCursor++] != frame_tail2)
 		    {
 		        continue;
 		    }
 		    data[datCursor++] = serial_buf[bufCursor];
 		    currentLength--;
-		    if(serial_buf[bufCursor++] != FRAME_END2)
+		    if(serial_buf[bufCursor++] != frame_tail3)
 		    {
 		        continue;
 		    }
-		    data[datCursor++] = serial_buf[bufCursor];
-		    currentLength--;
-		    if(serial_buf[bufCursor++] != FRAME_END3)
-		    {
-		        continue;
-		    }
-
 		    //获取完整的一帧数据，并判断数据是否完整 
+		    cout<<"test tail-----datCursor:"<<datCursor<<endl;
+		    //cout 数据
+		    i=0;
+		    while(i<datCursor)
+		    {
+		    	cout<<hex<<(int)(data[i++] & 0xff)<<":";
+		    }
+		    cout<<endl;
+		    //以下为检查数据。。。。
+		   /*
+		    i=(int)(data[2]&0xff);
+		    cout<<"i="<<i<<endl;
+		    cout<<"bufSize: "<< data[2] <<endl;
 		    if(datCursor!=(data[2]&0xff))
 		    {
 				//出错
@@ -227,7 +249,7 @@ int main()
 		        continue;
 		    }
 		    //判断数据帧头是否正确
-		    if(data[0]!=FRAME_START)
+		    if(data[0]!=frame_head)
 		    {
 		        //出错
 		        cout<<"frame head error!!"<<endl;
@@ -237,26 +259,27 @@ int main()
 			{
 				//读取数据
 				//使用 *serial->data[]
+				cout<<"data finish----------------"<<endl;
 			}
-	    
+	    */
 		    //余下缓冲的数据保存。
 		    datCursor=0;
 		    while(currentLength>0)
 		    {
-		        data[datCursor++]=serial_buf[i++];
+		        data[datCursor++]=serial_buf[bufCursor++];
 		        currentLength--;
 		    }
 		    	    
 		}//end while(currentLength > end_len)
-		int i=0;
+		i=0;
 		//残留字节移到缓冲区首
 		while(currentLength>i)
 		{
 		    temp = serial_buf[bufCursor++];
 		    serial_buf[i++]=temp;
 		}		
-		//usleep();
+		//usleep();		
 	}//end while(true)
-		
+	
 }
 

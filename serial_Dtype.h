@@ -1,19 +1,13 @@
 #ifndef __SERIAL_DTYPE_H
 #define __SERIAL_DTYPE_H
-#include "stdio.h"
-#include "sys.h"
-#include "usart.h"
-#include "dma.h"
-#include "stdbool.h"
-#include "delay.h"
 
 
-#define FRAME_START 154
-#define FRAME_END1	1
-#define FRAME_END2	2
-#define FRAME_END3	3
+#define FRAME_START 154 //0x9a
+#define FRAME_END1	156	//0x9c
+#define FRAME_END2	13 //0x0d
+#define FRAME_END3	10 //0xoa
 
-#define DATA_LEN	9
+#define DATA_LEN	35 //数据大小 
 //数据大小
 
 typedef char u8;
