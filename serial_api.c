@@ -1,7 +1,7 @@
 /**
 version:v2.4
 @author:yuanzhongyan
-@email:yz.yan@siat.ac.cn 276232909@qq.com
+@email:yz.yan@siat.ac.cn m15579395792@163.com
 @date:2018-4-10
 Build instructions:
 1. g++ cp210x_gpio_example.c -o cp210x_gpio_example
@@ -153,63 +153,63 @@ int initial_serial(int m_fd,speed_t baudrate, int databits, const char parity, b
 
 }
 
-#define SERIAL_LEN 60
+#define BUF_SIZE_MAX    120
+#define DAT_SIZE_MAX    60
+#define FRAME_TAIL_SIZE 3
+#define READ_SIZE       40
+
 
 
 int main()
 {
 	int     fd;             //硬件设备句柄
 	int     available_len; //可用的数据长度
-	char    serial_buf[SERIAL_LEN];	//串口缓存
-	char    data[SERIAL_LEN]; //数据空间
-	int     read_len=41;//读取的数据长度
-	int     end_len=3;    //帧尾长度
-	int     packcursor=0;
-	
-	int start_point;
-	int present_point=0;
-	bool is_analysis_FRhead=false;
-	
-	fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY/* | O_NDELAY*/);
-	
+	char    serial_buf[BUF_SIZE_MAX];	//串口缓存
+	char    data[DAT_SIZE_MAX]; //数据空间
+	char    temp;               //临时中转数据
+	int     datCursor:          //当前数据指针
+	int     bufCursor;          //当前缓存指针
+	//打开串口设备
+	fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY/* | O_NDELAY*/);	
 	if (fd == -1)
 	{
 		cout << "Error opening port /dev/ttyUSB0\n";
 		return -1;
 	}
+	//初始化串口设备
 	if(initial_serial(fd,B115200,8,'N', true, false, false)==-1)
 	{
 		cout<<"initial serial error"<<endl;
 		return -1;
 	}
 
-	int currentLength=0;//当前读取的数据长度
+	int currentLength=0;//当前读取的缓存数据长度
 	while(true){	
-		available_len=read(fd,serial_buf+currentLength,read_len);
+		available_len=read(fd,serial_buf+currentLength,READ_SIZE);
 		if(available_len<0){
 			
 			cout<<"read Attitude data error.."<<endl;
 			continue;
 		}
 		currentLength += available_len;
-		int cursor=0;
+		bufCursor=0;//缓存指针
 		//如果接收可用的数据大于数据帧尾标识大小则解析
-		while(currentLength > end_len)
+		while(currentLength > FRAME_TAIL_SIZE)
 		{
 		    //检测到帧尾,并同时提取帧数据
-		    data[packcursor++] = serial_buf[cursor];
+		    data[datCursor++] = serial_buf[cursor];
 		    currentLength--;
 		    if(serial_buf[cursor++] != FRAME_END1)
 		    {
 		        continue;
 		    }
-		    data[packcursor++] = serial_buf[cursor];
+		    data[datCursor++] = serial_buf[cursor];
 		    currentLength--;
 		    if(serial_buf[cursor++] != FRAME_END2)
 		    {
 		        continue;
 		    }
-		    data[packcursor++] = serial_buf[cursor];
+		    data[datCursor++] = serial_buf[cursor];
 		    currentLength--;
 		    if(serial_buf[cursor++] != FRAME_END3)
 		    {
@@ -217,7 +217,7 @@ int main()
 		    }
 
 		    //获取完整的一帧数据，并判断数据是否完整 
-		    if(packcursor==data[1])
+		    if(datCursor==data[1])
 		    {
 		        
 		    }
@@ -227,20 +227,19 @@ int main()
 		        //得到数据。
 		    }	    
 		    //余下缓冲的数据保存。
-		    packcursor=0;
+		    datCursor=0;
 		    while(currentLength>0)
 		    {
-		        data[packcursor++]=serial_buf[i++];
+		        data[datCursor++]=serial_buf[i++];
 		        currentLength--;
 		    }
 		    	    
 		}//end while(currentLength > end_len)
 		int i=0;
-		char temp;
 		//残留字节移到缓冲区首
 		while(currentLength>i)
 		{
-		    temp = serial_buf[cursor++];
+		    temp = serial_buf[bufCursor++];
 		    serial_buf[i++]=temp;
 		}		
 		//sleep();
