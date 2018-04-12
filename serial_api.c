@@ -22,6 +22,7 @@ extra detail information about serial see
 #include <termios.h>    /*PPSIX 终端控制定义*/
 #include <sys/ioctl.h>    /* BSD and Linux */
 #include <stropts.h>    /* XSI STREAMS */
+#include "serial_Dtype.h"
 
 #define FRAME_SIZE 41
 
@@ -169,6 +170,8 @@ int main()
 	char    temp;               //临时中转数据
 	int     datCursor:          //当前数据指针
 	int     bufCursor;          //当前缓存指针
+	Serial_base_data * serial_data;
+	serial_data=(Serial_base_data *) data;
 	//打开串口设备
 	fd = open("/dev/ttyUSB0", O_RDWR | O_NOCTTY/* | O_NDELAY*/);	
 	if (fd == -1)
@@ -197,35 +200,45 @@ int main()
 		while(currentLength > FRAME_TAIL_SIZE)
 		{
 		    //检测到帧尾,并同时提取帧数据
-		    data[datCursor++] = serial_buf[cursor];
+		    data[datCursor++] = serial_buf[bufCursor];
 		    currentLength--;
-		    if(serial_buf[cursor++] != FRAME_END1)
+		    if(serial_buf[bufCursor++] != FRAME_END1)
 		    {
 		        continue;
 		    }
-		    data[datCursor++] = serial_buf[cursor];
+		    data[datCursor++] = serial_buf[bufCursor];
 		    currentLength--;
-		    if(serial_buf[cursor++] != FRAME_END2)
+		    if(serial_buf[bufCursor++] != FRAME_END2)
 		    {
 		        continue;
 		    }
-		    data[datCursor++] = serial_buf[cursor];
+		    data[datCursor++] = serial_buf[bufCursor];
 		    currentLength--;
-		    if(serial_buf[cursor++] != FRAME_END3)
+		    if(serial_buf[bufCursor++] != FRAME_END3)
 		    {
 		        continue;
 		    }
 
 		    //获取完整的一帧数据，并判断数据是否完整 
-		    if(datCursor==data[1])
+		    if(datCursor!=(data[2]&0xff))
 		    {
-		        
+				//出错
+				cout<<"frame size error!!"<<endl;
+		        continue;
 		    }
-		    //判断数据包头是否正确
-		    if(data[0]==FRAME_START)
+		    //判断数据帧头是否正确
+		    if(data[0]!=FRAME_START)
 		    {
-		        //得到数据。
-		    }	    
+		        //出错
+		        cout<<"frame head error!!"<<endl;
+		        continue;
+		    }
+		    else
+			{
+				//读取数据
+				//使用 *serial->data[]
+			}
+	    
 		    //余下缓冲的数据保存。
 		    datCursor=0;
 		    while(currentLength>0)
@@ -242,7 +255,7 @@ int main()
 		    temp = serial_buf[bufCursor++];
 		    serial_buf[i++]=temp;
 		}		
-		//sleep();
+		//usleep();
 	}//end while(true)
 		
 }
