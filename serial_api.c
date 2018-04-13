@@ -242,24 +242,27 @@ int main()
 		    i=(int)(data[2]&0xff);
 		    cout<<"i="<<i<<endl;
 		    cout<<"bufSize: "<< data[2] <<endl;
-		    if(datCursor!=(data[2]&0xff))
+		    if(datCursor!= (int)(*serial_data->frame_len))
 		    {
 				//出错
 				cout<<"frame size error!!"<<endl;
+				//清除结构体的数据
+				datCursor=0;
 		        continue;
 		    }
 		    //判断数据帧头是否正确
-		    if(data[0]!=frame_head)
+		    if(*serial_data->frame_s=frame_head)
 		    {
 		        //出错
 		        cout<<"frame head error!!"<<endl;
+		        //清除结构体的数据
+				datCursor=0;
 		        continue;
 		    }
 		    else
 			{
 				//读取数据
-				//使用 *serial->data[]
-				cout<<"data finish----------------"<<endl;
+				//使用 *serial->data[]				
 			}
 	    */
 		    //余下缓冲的数据保存。
@@ -271,8 +274,9 @@ int main()
 		    }
 		    	    
 		}//end while(currentLength > end_len)
-		i=0;
 		//残留字节移到缓冲区首
+		i=0;
+		
 		while(currentLength>i)
 		{
 		    temp = serial_buf[bufCursor++];
