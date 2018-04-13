@@ -154,24 +154,24 @@ int initial_serial(int m_fd,speed_t baudrate, int databits, const char parity, b
 
 }
 
-#define BUF_SIZE_MAX    120
-#define DAT_SIZE_MAX    60
+#define BUF_SIZE_MAX    68
+#define DAT_SIZE_MAX    40
 #define FRAME_TAIL_SIZE 3
 #define READ_SIZE       32
 
-char frame_tail1 = FRAME_END1;
-char frame_tail2 = FRAME_END2;
-char frame_tail3 = FRAME_END3;
-char frame_head  = FRAME_START;
+u8 frame_tail1 = FRAME_END1;
+u8 frame_tail2 = FRAME_END2;
+u8 frame_tail3 = FRAME_END3;
+u8 frame_head  = FRAME_START;
 
 
 int main()
 {
 	int     fd;             //硬件设备句柄
 	int     available_len; //可用的数据长度
-	char    serial_buf[BUF_SIZE_MAX];	//串口缓存
-	char    data[DAT_SIZE_MAX]; //数据空间
-	char    temp;               //临时中转数据
+	unsigned char    serial_buf[BUF_SIZE_MAX];	//串口缓存
+	unsigned char    data[DAT_SIZE_MAX]; //数据空间
+	unsigned char    temp;               //临时中转数据
 	int     datCursor;          //当前数据指针
 	int     bufCursor;          //当前缓存指针
 	int 	i;
@@ -236,47 +236,32 @@ int main()
 		    {
 		    	cout<<hex<<(int)(data[i++] & 0xff)<<":";
 		    }
-		    cout<<endl;
-		    //以下为检查数据。。。。
-		   /*
-		    i=(int)(data[2]&0xff);
-		    cout<<"i="<<i<<endl;
-		    cout<<"bufSize: "<< data[2] <<endl;
-		    if(datCursor!= (int)(*serial_data->frame_len))
+		    cout<<dec<<endl;
+		    cout <<"serial_data->frame_len:"<<(int)serial_data->frame_len<<endl;
+		   	 /*
+		    if(datCursor!=serial_data->frame_len)
 		    {
 				//出错
 				cout<<"frame size error!!"<<endl;
-				//清除结构体的数据
-				datCursor=0;
-		        continue;
 		    }
-		    //判断数据帧头是否正确
-		    if(*serial_data->frame_s=frame_head)
+		   */
+		   
+		    //判断数据帧头是否正确	    
+		    if(serial_data->frame_s != frame_head)
 		    {
 		        //出错
 		        cout<<"frame head error!!"<<endl;
-		        //清除结构体的数据
-				datCursor=0;
-		        continue;
 		    }
 		    else
 			{
 				//读取数据
-				//使用 *serial->data[]				
+				//使用 *serial->data[]	
+				cout<<"data finish--------------"endl;			
 			}
-	    */
-		    //余下缓冲的数据保存。
 		    datCursor=0;
-		    while(currentLength>0)
-		    {
-		        data[datCursor++]=serial_buf[bufCursor++];
-		        currentLength--;
-		    }
-		    	    
 		}//end while(currentLength > end_len)
 		//残留字节移到缓冲区首
-		i=0;
-		
+		i=0;		
 		while(currentLength>i)
 		{
 		    temp = serial_buf[bufCursor++];
