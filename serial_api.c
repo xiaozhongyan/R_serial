@@ -157,7 +157,7 @@ int initial_serial(int m_fd,speed_t baudrate, int databits, const char parity, b
 #define BUF_SIZE_MAX    68
 #define DAT_SIZE_MAX    40
 #define FRAME_TAIL_SIZE 3
-#define READ_SIZE       32
+#define READ_SIZE       31
 
 u8 frame_tail1 = FRAME_END1;
 u8 frame_tail2 = FRAME_END2;
@@ -169,9 +169,9 @@ int main()
 {
 	int     fd;             //硬件设备句柄
 	int     available_len; //可用的数据长度
-	unsigned char    serial_buf[BUF_SIZE_MAX];	//串口缓存
-	unsigned char    data[DAT_SIZE_MAX]; //数据空间
-	unsigned char    temp;               //临时中转数据
+	u8    serial_buf[BUF_SIZE_MAX];	//串口缓存
+	u8    data[DAT_SIZE_MAX]; //数据空间
+	u8    temp;               //临时中转数据
 	int     datCursor;          //当前数据指针
 	int     bufCursor;          //当前缓存指针
 	int 	i;
@@ -238,14 +238,12 @@ int main()
 		    }
 		    cout<<dec<<endl;
 		    cout <<"serial_data->frame_len:"<<(int)serial_data->frame_len<<endl;
-		   	 /*
+		   	 
 		    if(datCursor!=serial_data->frame_len)
 		    {
 				//出错
 				cout<<"frame size error!!"<<endl;
-		    }
-		   */
-		   
+		    }		   
 		    //判断数据帧头是否正确	    
 		    if(serial_data->frame_s != frame_head)
 		    {
