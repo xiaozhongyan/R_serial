@@ -253,13 +253,13 @@ int main()
 		    else
 			{
 				//读取数据
-				//使用 *serial->data[]
-				cout<<"data finish----------------"<<endl;
+				//使用 *serial->data[]	
+				cout<<"data finish--------------"endl;			
 			}
 		    datCursor=0;
 		}//end while(currentLength > end_len)
-		i=0;
 		//残留字节移到缓冲区首
+		i=0;		
 		while(currentLength>i)
 		{
 		    temp = serial_buf[bufCursor++];
