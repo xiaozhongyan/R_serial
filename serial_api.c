@@ -1,6 +1,6 @@
 /**
 version:v2.4
-@author:yuanzhongyan
+@author:yanyuanzhong
 @email:yz.yan@siat.ac.cn m15579395792@163.com
 @date:2018-4-10
 Build instructions:
